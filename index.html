@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cup Arrangement Game - A Logic Puzzle</title>
+    <meta name="description"
+        content="A fun, browser-based logic puzzle game. Guess the correct arrangement of 4 uniquely colored cups to win! Similar to Mastermind.">
+    <meta name="keywords"
+        content="cup game, logic game, mastermind alternative, puzzle game, brain teaser, browser game">
+    <meta property="og:title" content="Cup Arrangement Game">
+    <meta property="og:description"
+        content="Guess the correct arrangement of 4 colored cups. Play this free browser puzzle game!">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <button id="themeToggle"
+        style="position: absolute; top: 15px; right: 15px; background: var(--container-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px var(--shadow-color); transition: 0.2s;">🌙
+        Dark</button>
+
+    <h1>Cup Arrangement</h1>
+    <div id="timerDisplay"
+        style="font-size: 24px; font-family: monospace; font-weight: bold; color: var(--timer-color); margin-bottom: 5px; text-shadow: 0 1px 2px var(--shadow-color); transition: color 0.3s;">
+        0.0s</div>
+    <p class="instructions">Guess the correct order. Shortcuts: <b>7, 8, 9, 0</b> to pick/swap. <b>Backspace</b> to
+        remove/cancel. <b>Enter/Space</b> to submit.</p>
+
+    <div class="game-area">
+        <div class="controls" style="margin-top: 0; margin-bottom: 10px;">
+            <button id="submitBtn" disabled>Submit Guess</button>
+        </div>
+
+        <div class="settings"
+            style="margin-top: 0; margin-bottom: 20px; font-size: 14px; color: var(--instruction-color); transition: color 0.3s; width: 100%; display: flex; justify-content: center;">
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none;">
+                <input type="checkbox" id="resetAfterGuess"
+                    style="cursor: pointer; width: 18px; height: 18px; accent-color: var(--accent);">
+                Reset cups after guess
+            </label>
+        </div>
+
+        <div class="board-container" id="boardContainer">
+            <!-- Slots and cups injected by JS -->
+        </div>
+
+        <div style="margin-top: 30px; width: 100%;">
+            <!-- <h3 style="margin: 0 0 10px 0; font-size: 14px; color: var(--instruction-color); text-transform: uppercase; letter-spacing: 1px; text-align: center; transition: color 0.3s;">Past Guesses</h3> -->
+            <div class="history-container" id="historyContainer"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="winModal">
+        <div class="modal-content">
+            <h2>You Won!</h2>
+            <p>You guessed correctly in <b id="attemptCount" style="color: var(--accent);">0</b> attempts.<br>Time: <b
+                    id="winTime" style="color: var(--accent);">0.0s</b></p>
+            <button id="restartBtn">Play Again</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
