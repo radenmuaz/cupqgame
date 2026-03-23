@@ -13,14 +13,13 @@ let selectedTableIndex = null;
 let timerInterval = null;
 let startTime = 0;
 let timerRunning = false;
+let gameWon = false;
 
 const boardContainer = document.getElementById('boardContainer');
 const historyContainer = document.getElementById('historyContainer');
 const submitBtn = document.getElementById('submitBtn');
-const winModal = document.getElementById('winModal');
 const resetAfterGuessCheckbox = document.getElementById('resetAfterGuess');
 const timerDisplay = document.getElementById('timerDisplay');
-const winTime = document.getElementById('winTime');
 const themeToggle = document.getElementById('themeToggle');
 
 let isDark = false;
@@ -64,8 +63,13 @@ function initGame() {
     tableCups = [null, null, null, null];
     attempts = 0;
     selectedTableIndex = null;
+    gameWon = false;
+    
+    submitBtn.textContent = 'Submit Guess';
+    submitBtn.style.backgroundColor = '';
+    document.querySelector('.instructions').innerHTML = 'Guess the correct order. Shortcuts: <b>7, 8, 9, 0</b> to pick/swap. <b>Backspace</b> to remove/cancel. <b>Enter/Space</b> to submit.';
+    
     renderEmptyHistory();
-    winModal.classList.remove('visible');
     
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = null;
@@ -141,14 +145,16 @@ function renderBoard() {
 }
 
 function handleCupClick(colorId) {
+    if (gameWon) return;
+    
     startTimer();
     
     const tableIdx = tableCups.findIndex(c => c && c.id === colorId);
     const poolIdx = poolCups.findIndex(c => c && c.id === colorId);
 
     if (poolIdx !== -1) {
-        // Move from pool to table leftmost empty slot
-        const firstEmptyTableIdx = tableCups.findIndex(c => c === null);
+        // Move from pool to table rightmost empty slot
+        const firstEmptyTableIdx = tableCups.findLastIndex(c => c === null);
         if (firstEmptyTableIdx !== -1) {
             const cup = poolCups[poolIdx];
             poolCups[poolIdx] = null;
@@ -177,9 +183,11 @@ function handleCupClick(colorId) {
 }
 
 function handleTableHotkey(tableIndex) {
+    if (gameWon) return;
+    
     if (tableCups[tableIndex] === null) {
-        // Pull left-most available pool cup
-        const poolCupIdx = poolCups.findIndex(c => c !== null);
+        // Pull right-most available pool cup
+        const poolCupIdx = poolCups.findLastIndex(c => c !== null);
         if (poolCupIdx !== -1) {
             startTimer();
             const cup = poolCups[poolCupIdx];
@@ -206,6 +214,8 @@ function handleTableHotkey(tableIndex) {
 }
 
 function handleTableSlotClick(slotIndex) {
+    if (gameWon) return;
+    
     if (selectedTableIndex !== null && tableCups[slotIndex] === null) {
         // Move selected table cup to empty table slot
         tableCups[slotIndex] = tableCups[selectedTableIndex];
@@ -216,6 +226,8 @@ function handleTableSlotClick(slotIndex) {
 }
 
 function removeLastCup() {
+    if (gameWon) return;
+    
     if (selectedTableIndex !== null) {
         // Option 1: cancel selection
         selectedTableIndex = null;
@@ -250,9 +262,15 @@ function submitGuess() {
     
     if (correctCount === 4) {
         clearInterval(timerInterval);
-        document.getElementById('attemptCount').textContent = attempts;
-        winTime.textContent = timerDisplay.textContent;
-        winModal.classList.add('visible');
+        gameWon = true;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'New Game';
+        submitBtn.style.backgroundColor = '#4cd137';
+        
+        document.querySelector('.instructions').innerHTML = `🎉 <b style="color: var(--accent);">You Won!</b> Guessed in <b style="color: var(--accent);">${attempts}</b> attempts. Time: <b style="color: var(--accent);">${timerDisplay.textContent}</b> 🎉`;
+        
+        selectedTableIndex = null;
+        renderBoard();
     } else {
         // Clear selection to allow quick edits for next row
         selectedTableIndex = null;
@@ -309,23 +327,20 @@ function addHistoryItem(arrangement, correctCount) {
 
 // Event Listeners
 document.addEventListener('keydown', (e) => {
-    if (winModal.classList.contains('visible')) {
-        if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (gameWon) {
             initGame();
+        } else if (!submitBtn.disabled) {
+            submitGuess();
         }
         return;
     }
+
+    if (gameWon) return;
 
     if (e.key === 'Backspace') {
         removeLastCup();
-        return;
-    }
-
-    if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        if (!submitBtn.disabled) {
-            submitGuess();
-        }
         return;
     }
 
@@ -337,8 +352,10 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-submitBtn.addEventListener('click', submitGuess);
-document.getElementById('restartBtn').addEventListener('click', initGame);
+submitBtn.addEventListener('click', () => {
+    if (gameWon) initGame();
+    else submitGuess();
+});
 
 // Boot game
 initGame();
