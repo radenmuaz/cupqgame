@@ -1,23 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cup Q Game - A Logic Puzzle</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-78WLSNMD0G"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-78WLSNMD0G');
+    </script>
 </head>
+
 <body>
     <div class="game-container">
         <div class="header">
             <h1 class="logo">Cup Q</h1>
             <div class="controls">
                 <div class="timer" id="timerDisplay">0.0s</div>
-                <button id="newGameBtn" class="new-game-btn">New Game</button>
-                <button id="themeToggle" class="theme-btn">🌙 Dark</button>
             </div>
         </div>
 
-        <p class="instructions">Guess the correct order. Shortcuts: <b>Q-T / Y-P</b> to swap. <b>Backspace/Esc</b> to cancel.</p>
+        <p class="instructions">Guess the correct order. Shortcuts: <b>Q-T / Y-P</b> to swap. <b>Backspace/Esc</b> to
+            cancel.</p>
 
         <div class="settings">
             <div class="mode-selection">
@@ -32,14 +42,10 @@
                     <input type="radio" name="cupMode" value="5" checked> 5
                 </label>
             </div>
-            <div class="mode-selection" id="handModeContainer">
-                <span class="mode-label">Hand:</span>
-                <label class="mode-option">
-                    <input type="radio" name="handMode" value="left"> Left (Q-T)
-                </label>
-                <label class="mode-option">
-                    <input type="radio" name="handMode" value="right" checked> Right (Y-P)
-                </label>
+            <div class="settings-actions">
+                <button id="newGameBtn" class="new-game-btn">New Game</button>
+                <button id="toggleHistoryBtn" class="theme-btn">Show History</button>
+                <button id="themeToggle" class="theme-btn">🌙 Dark</button>
             </div>
         </div>
 
@@ -49,7 +55,7 @@
             </div>
         </div>
 
-        <div class="history-container" id="historyContainer">
+        <div class="history-container hidden" id="historyContainer">
             <!-- Dynamic history rows -->
         </div>
     </div>
@@ -57,4 +63,5 @@
     <!-- Script at the end -->
     <script src="script.js"></script>
 </body>
+
 </html>

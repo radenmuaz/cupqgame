@@ -10,9 +10,7 @@ const LEFT_KEYS = ['q', 'w', 'e', 'r', 't'];
 const ALL_RIGHT_KEYS = ['y', 'u', 'i', 'o', 'p'];
 
 let numCups = 5;
-let handMode = 'right';
 let targetArrangement = [];
-let poolCups = []; 
 let tableCups = [];
 let attempts = 0;
 let selectedTableIndex = null;
@@ -26,8 +24,8 @@ const historyContainer = document.getElementById('historyContainer');
 const timerDisplay = document.getElementById('timerDisplay');
 const themeToggle = document.getElementById('themeToggle');
 const modeRadios = document.getElementsByName('cupMode');
-const handRadios = document.getElementsByName('handMode');
 const newGameBtn = document.getElementById('newGameBtn');
+const toggleHistoryBtn = document.getElementById('toggleHistoryBtn');
 
 let isDark = false;
 themeToggle.addEventListener('click', () => {
@@ -41,18 +39,16 @@ themeToggle.addEventListener('click', () => {
     }
 });
 
+// History toggle
+toggleHistoryBtn.addEventListener('click', () => {
+    const isHidden = historyContainer.classList.toggle('hidden');
+    toggleHistoryBtn.textContent = isHidden ? 'Show History' : 'Hide History';
+});
+
 // Mode selection listener
 modeRadios.forEach(radio => {
     radio.addEventListener('change', (e) => {
         numCups = parseInt(e.target.value);
-        initGame();
-    });
-});
-
-// Hand selection listener
-handRadios.forEach(radio => {
-    radio.addEventListener('change', (e) => {
-        handMode = e.target.value;
         initGame();
     });
 });
@@ -84,12 +80,10 @@ function renderEmptyHistory() {
 }
 
 function getActiveHotkeys() {
-    if (handMode === 'left') {
-        return LEFT_KEYS.slice(0, numCups);
-    } else {
-        // Right hand: 5=yuiop, 4=uiop, 3=iop
-        return ALL_RIGHT_KEYS.slice(5 - numCups);
-    }
+    return {
+        left: LEFT_KEYS.slice(0, numCups),
+        right: ALL_RIGHT_KEYS.slice(5 - numCups)
+    };
 }
 
 function generateDerangement(colors) {
@@ -106,9 +100,15 @@ function generateDerangement(colors) {
 
 function getScale() {
     const style = getComputedStyle(document.documentElement);
+    const pitch = parseInt(style.getPropertyValue('--cup-pitch')) || 80;
+    const paddingLeft = 15; // Padding for the board itself
+    const columnWidth = 60; // Space for the 'X/Y' text
+    const boardWidth = 5 * pitch + paddingLeft * 2;
     return {
-        pitch: parseInt(style.getPropertyValue('--cup-pitch')) || 80,
-        top: parseInt(style.getPropertyValue('--cup-top')) || 75
+        pitch,
+        top: parseInt(style.getPropertyValue('--cup-top')) || 75,
+        boardWidth,
+        containerWidth: boardWidth + columnWidth + 30 // Include row padding
     };
 }
 
@@ -124,15 +124,19 @@ function initGame() {
     boardContainer.innerHTML = '';
     cupElements = {};
     
-    const hotkeys = getActiveHotkeys().join(', ');
-    document.querySelector('.instructions').innerHTML = `Guess the correct order. <br>Shortcuts: <b>${hotkeys}</b> to swap. <b>Backspace/Esc</b> to cancel.`;
+    const hotkeys = getActiveHotkeys();
+    const instructionKeys = `${hotkeys.right.join('')} / <span style="opacity: 0.6">${hotkeys.left.join('')}</span>`;
+    document.querySelector('.instructions').innerHTML = `Guess the correct order. <br>Keys: <b>${instructionKeys}</b> to swap.`;
     
     const scale = getScale();
-    const totalWidth = numCups * scale.pitch + 20; 
-    boardContainer.style.width = `${totalWidth}px`;
-    if (historyContainer) historyContainer.style.width = `${totalWidth}px`;
+    const containerContentWidth = scale.containerWidth - 30; // Accounting for 15px padding on each side
+    const centeringOffset = (containerContentWidth - (numCups * scale.pitch)) / 2;
+    
+    if (historyContainer) {
+        historyContainer.style.width = `${scale.containerWidth}px`;
+    }
     const gameArea = document.querySelector('.game-area');
-    if (gameArea) gameArea.style.width = `${totalWidth}px`;
+    if (gameArea) gameArea.style.width = `${scale.containerWidth}px`;
 
     renderEmptyHistory();
     
@@ -142,6 +146,25 @@ function initGame() {
     timerDisplay.textContent = '0.0s';
     
     renderBoard();
+    updateActiveScore();
+}
+
+function updateActiveScore(count) {
+    if (count === undefined) {
+        count = 0;
+        for (let i = 0; i < numCups; i++) {
+            if (tableCups[i].id === targetArrangement[i].id) count++;
+        }
+    }
+    const scoreEl = document.getElementById('activeScore');
+    if (scoreEl) {
+        scoreEl.textContent = `${count}/${numCups}`;
+        if (count === numCups) {
+            scoreEl.classList.add('correct-all');
+        } else {
+            scoreEl.classList.remove('correct-all');
+        }
+    }
 }
 
 function startTimer() {
@@ -160,17 +183,19 @@ function updateTimer() {
 function renderBoard() {
     const hotkeys = getActiveHotkeys();
     const scale = getScale();
-    const paddingLeft = 10; 
+    const containerContentWidth = scale.containerWidth - 30; // Accounting for 15px padding on each side
+    const centeringOffset = (containerContentWidth - (numCups * scale.pitch)) / 2;
 
     if (Object.keys(cupElements).length === 0) {
         for(let i=0; i<numCups; i++) {
-            const leftPos = paddingLeft + i * scale.pitch;
+            const leftPos = centeringOffset + i * scale.pitch + (scale.pitch / 2 - 35); // 35 is half-width of slot
             
             const tableSlot = document.createElement('div');
             tableSlot.className = `slot table-slot`;
             tableSlot.style.left = `${leftPos}px`;
             tableSlot.style.top = `${scale.top}px`; 
-            tableSlot.setAttribute('data-key', hotkeys[i]);
+            tableSlot.setAttribute('data-key-primary', hotkeys.right[i]);
+            tableSlot.setAttribute('data-key-secondary', hotkeys.left[i]);
             tableSlot.addEventListener('click', () => handleTableSlotClick(i));
             boardContainer.appendChild(tableSlot);
         }
@@ -184,6 +209,11 @@ function renderBoard() {
             boardContainer.appendChild(cup);
             cupElements[color.id] = cup;
         });
+
+        const activeResult = document.createElement('div');
+        activeResult.className = 'history-result';
+        activeResult.id = 'activeScore';
+        boardContainer.appendChild(activeResult);
     }
 
     tableCups.forEach((color, tableIdx) => {
@@ -192,7 +222,7 @@ function renderBoard() {
         el.classList.remove('selected');
 
         el.style.top = `${scale.top}px`;
-        el.style.left = `${paddingLeft + tableIdx * scale.pitch}px`;
+        el.style.left = `${centeringOffset + tableIdx * scale.pitch + (scale.pitch / 2 - 35)}px`;
         if (selectedTableIndex === tableIdx) {
             el.classList.add('selected');
         }
@@ -263,18 +293,17 @@ function submitGuess() {
     }
     
     addHistoryItem([...tableCups], correctCount);
+    updateActiveScore(correctCount);
     
     if (correctCount === numCups) {
         clearInterval(timerInterval);
         gameWon = true;
         
-        document.querySelector('.instructions').innerHTML = `🎉 <b style="color: var(--accent);">You Won!</b> Swapped in <b style="color: var(--accent);">${attempts}</b> attempts. Time: <b style="color: var(--accent);">${timerDisplay.textContent}</b> 🎉`;
+        document.querySelector('.instructions').innerHTML = `🎉 <b style="color: #2ecc71;">Win!</b> Swaps: <b>${attempts}</b> | Time: <b>${timerDisplay.textContent}</b> 🎉`;
         
         selectedTableIndex = null;
         renderBoard();
-    } else {
-        selectedTableIndex = null;
-        renderBoard();
+        updateActiveScore(correctCount); // Ensure green score
     }
 }
 
@@ -290,10 +319,15 @@ function addHistoryItem(arrangement, correctCount) {
     const slotsDiv = document.createElement('div');
     slotsDiv.className = 'history-slots';
     
-    arrangement.forEach(cup => {
+    const scale = getScale();
+    const containerContentWidth = scale.containerWidth - 30;
+    const centeringOffset = (containerContentWidth - (numCups * scale.pitch)) / 2;
+    
+    arrangement.forEach((cup, i) => {
         const miniCup = document.createElement('div');
         miniCup.className = 'history-cup';
         miniCup.style.backgroundColor = cup.hex;
+        miniCup.style.left = `${centeringOffset + i * scale.pitch + (scale.pitch / 2 - 25)}px`; // 25 is half-width of mini-cup
         slotsDiv.appendChild(miniCup);
     });
     
@@ -305,11 +339,9 @@ function addHistoryItem(arrangement, correctCount) {
     row.appendChild(resultDiv);
     
     historyContainer.insertBefore(row, historyContainer.firstChild);
+    historyContainer.scrollTo({ top: 0, behavior: 'smooth' });
     
-    historyContainer.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
+    return row;
 }
 
 // Event Listeners
@@ -324,13 +356,10 @@ document.addEventListener('keydown', (e) => {
 
     if (gameWon) return;
 
-    if (key === 'backspace' || key === 'escape') {
-        removeLastCup();
-        return;
-    }
-
     const hotkeys = getActiveHotkeys();
-    const tableIndex = hotkeys.indexOf(key);
+    const rightIndex = hotkeys.right.indexOf(key);
+    const leftIndex = hotkeys.left.indexOf(key);
+    const tableIndex = rightIndex !== -1 ? rightIndex : leftIndex;
 
     if (tableIndex !== -1) {
         handleTableHotkey(tableIndex);
@@ -342,11 +371,9 @@ newGameBtn.addEventListener('click', () => initGame());
 
 window.addEventListener('resize', () => {
     const scale = getScale();
-    const totalWidth = numCups * scale.pitch + 20;
-    boardContainer.style.width = `${totalWidth}px`;
-    if (historyContainer) historyContainer.style.width = `${totalWidth}px`;
+    if (historyContainer) historyContainer.style.width = `${scale.containerWidth}px`;
     const gameArea = document.querySelector('.game-area');
-    if (gameArea) gameArea.style.width = `${totalWidth}px`;
+    if (gameArea) gameArea.style.width = `${scale.containerWidth}px`;
     renderBoard();
 });
 
