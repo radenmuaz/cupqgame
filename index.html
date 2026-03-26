@@ -1,69 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cup Q Game - A Logic Puzzle</title>
-    <meta name="description"
-        content="A fun, browser-based logic puzzle game. Guess the correct arrangement of 4 uniquely colored cups to win! Similar to Mastermind.">
-    <meta name="keywords"
-        content="tiktok cup game, logic game, mastermind alternative, puzzle game, brain teaser, browser game">
-    <meta property="og:title" content="Cup Arrangement Game">
-    <meta property="og:description"
-        content="Guess the correct arrangement of 4 colored cups. Play this free browser puzzle game!">
-    <meta property="og:type" content="website">
     <link rel="stylesheet" href="style.css">
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-78WLSNMD0G"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-
-        gtag('config', 'G-78WLSNMD0G');
-    </script>
 </head>
-
 <body>
-    <button id="themeToggle"
-        style="position: absolute; top: 15px; right: 15px; background: var(--container-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px var(--shadow-color); transition: 0.2s;">🌙
-        Dark</button>
-
-    <h1>Cup Q Game</h1>
-    <div id="timerDisplay"
-        style="font-size: 24px; font-family: monospace; font-weight: bold; color: var(--timer-color); margin-bottom: 5px; text-shadow: 0 1px 2px var(--shadow-color); transition: color 0.3s;">
-        0.0s</div>
-    <p class="instructions">Guess the correct order. Shortcuts: <b>7, 8, 9, 0</b> to pick/swap. <b>Backspace</b> to
-        remove/cancel. <b>Enter/Space</b> to submit.</p>
-
-    <div class="game-area">
-        <div class="controls" style="margin-top: 0; margin-bottom: 10px;">
-            <button id="submitBtn" disabled>Submit Guess</button>
+    <div class="game-container">
+        <div class="header">
+            <h1 class="logo">Cup Q</h1>
+            <div class="controls">
+                <div class="timer" id="timerDisplay">0.0s</div>
+                <button id="newGameBtn" class="new-game-btn">New Game</button>
+                <button id="themeToggle" class="theme-btn">🌙 Dark</button>
+            </div>
         </div>
 
-        <div class="settings"
-            style="margin-top: 0; margin-bottom: 20px; font-size: 14px; color: var(--instruction-color); transition: color 0.3s; width: 100%; display: flex; justify-content: center;">
-            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none;">
-                <input type="checkbox" id="resetAfterGuess"
-                    style="cursor: pointer; width: 18px; height: 18px; accent-color: var(--accent);">
-                Reset cups after guess
-            </label>
+        <p class="instructions">Guess the correct order. Shortcuts: <b>Q-T / Y-P</b> to swap. <b>Backspace/Esc</b> to cancel.</p>
+
+        <div class="settings">
+            <div class="mode-selection">
+                <span class="mode-label">Cups:</span>
+                <label class="mode-option">
+                    <input type="radio" name="cupMode" value="3"> 3
+                </label>
+                <label class="mode-option">
+                    <input type="radio" name="cupMode" value="4"> 4
+                </label>
+                <label class="mode-option">
+                    <input type="radio" name="cupMode" value="5" checked> 5
+                </label>
+            </div>
+            <div class="mode-selection" id="handModeContainer">
+                <span class="mode-label">Hand:</span>
+                <label class="mode-option">
+                    <input type="radio" name="handMode" value="left"> Left (Q-T)
+                </label>
+                <label class="mode-option">
+                    <input type="radio" name="handMode" value="right" checked> Right (Y-P)
+                </label>
+            </div>
         </div>
 
-        <div class="board-container" id="boardContainer">
-            <!-- Slots and cups injected by JS -->
+        <div class="game-area">
+            <div class="board-container" id="boardContainer">
+                <!-- Dynamic board content -->
+            </div>
         </div>
 
-        <div style="margin-top: 30px; width: 100%;">
-            <!-- <h3 style="margin: 0 0 10px 0; font-size: 14px; color: var(--instruction-color); text-transform: uppercase; letter-spacing: 1px; text-align: center; transition: color 0.3s;">Past Guesses</h3> -->
-            <div class="history-container" id="historyContainer"></div>
+        <div class="history-container" id="historyContainer">
+            <!-- Dynamic history rows -->
         </div>
     </div>
 
-
-
+    <!-- Script at the end -->
     <script src="script.js"></script>
 </body>
-
 </html>
