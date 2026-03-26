@@ -102,7 +102,7 @@ function getScale() {
     const style = getComputedStyle(document.documentElement);
     const pitch = parseInt(style.getPropertyValue('--cup-pitch')) || 80;
     const paddingLeft = 15; // Padding for the board itself
-    const columnWidth = 60; // Space for the 'X/Y' text
+    const columnWidth = 100; // Space for the 'X/Y' text (more room for 5-cup mode)
     const boardWidth = 5 * pitch + paddingLeft * 2;
     return {
         pitch,
